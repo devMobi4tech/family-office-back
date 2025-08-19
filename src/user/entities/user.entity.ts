@@ -1,9 +1,11 @@
+import { Address } from 'src/address/entities/address.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
 
 export enum PerfilInvestidor {
@@ -53,6 +55,9 @@ export class User {
 
   @Column({ nullable: true })
   comoConheceuApp: string;
+
+  @OneToOne(() => Address, (address) => address.usuario)
+  endereco: Address;
 
   @CreateDateColumn()
   perfilInvestidorDefinidoEm: Date;

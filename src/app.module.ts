@@ -4,6 +4,8 @@ import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
+import { AddressModule } from './address/address.module';
+import { Address } from './address/entities/address.entity';
 
 @Module({
   imports: [
@@ -14,11 +16,12 @@ import { AuthModule } from './auth/auth.module';
       username: process.env.DB_USERNAME || 'root',
       password: process.env.DB_PASSWORD || 'password',
       database: process.env.DB_NAME || 'family_office',
-      entities: [User],
+      entities: [User, Address],
       synchronize: true, // TODO: Setar como false em produção
     }),
     UserModule,
     AuthModule,
+    AddressModule,
   ],
 })
 export class AppModule {}
