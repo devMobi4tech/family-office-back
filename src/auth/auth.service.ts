@@ -1,11 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from 'src/user/dto/request-user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
-import { ResponseAuthDto } from './dto/response-auth.dto';
-import { RequestAuthDto } from './dto/request-auth.dto';
 import * as bcrypt from 'bcrypt';
+import { LoginRequestDto, RegisterRequestDto } from './dto/request-auth.dto';
+import { TokenResponseDto } from './dto/response-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,12 +13,12 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(request: CreateUserDto): Promise<ResponseAuthDto> {
+  async register(request: RegisterRequestDto): Promise<TokenResponseDto> {
     const user = await this.userService.createUser(request);
 
     const accessToken = await this.generateToken(user);
 
-    return new ResponseAuthDto(accessToken);
+    return new TokenResponseDto(accessToken);
   }
 
   private async generateToken(user: User): Promise<string> {
@@ -31,13 +30,13 @@ export class AuthService {
     return accessToken;
   }
 
-  async login(request: RequestAuthDto): Promise<ResponseAuthDto> {
+  async login(request: LoginRequestDto): Promise<TokenResponseDto> {
     const user = await this.userService.findByEmail(request.email);
     if (user) {
       const isMatch = await bcrypt.compare(request.senha, user.senhaHash);
       if (isMatch) {
         const accessToken = await this.generateToken(user);
-        return new ResponseAuthDto(accessToken);
+        return new TokenResponseDto(accessToken);
       }
     }
     throw new BadRequestException('E-mail ou senha incorretos.');

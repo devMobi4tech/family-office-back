@@ -1,4 +1,4 @@
-export class ResponseAuthDto {
+export class TokenResponseDto {
   accessToken: string;
 
   constructor(accessToken: string) {

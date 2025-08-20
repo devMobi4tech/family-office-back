@@ -2,16 +2,15 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/request-user.dto';
 import * as bcrypt from 'bcrypt';
 import { Address } from 'src/address/entities/address.entity';
 import { AddressService } from 'src/address/address.service';
 import { CreateAddressDto } from 'src/address/dto/request-address.dto';
+import { RegisterRequestDto } from 'src/auth/dto/request-auth.dto';
 
 @Injectable()
 export class UserService {
@@ -20,7 +19,7 @@ export class UserService {
     private addressService: AddressService,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(createUserDto: RegisterRequestDto): Promise<User> {
     await this.validateNewUserData(createUserDto);
 
     const hashedPassword = await bcrypt.hash(createUserDto.senha, 10);
@@ -50,13 +49,13 @@ export class UserService {
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException();
+      throw new ForbiddenException();
     }
 
     return await this.addressService.create(createAddressDto, user);
   }
 
-  private async validateNewUserData(dto: CreateUserDto): Promise<void> {
+  private async validateNewUserData(dto: RegisterRequestDto): Promise<void> {
     const emailExists = await this.userRepository.findOne({
       where: { email: dto.email },
     });
