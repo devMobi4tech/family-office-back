@@ -1,7 +1,14 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { TokenResponseDto } from './dto/response-auth.dto';
-import { LoginRequestDto, RegisterRequestDto } from './dto/request-auth.dto';
+import {
+  ForgotPasswordResponseDto,
+  TokenResponseDto,
+} from './dto/response-auth.dto';
+import {
+  ForogtPasswordRequestDto,
+  LoginRequestDto,
+  RegisterRequestDto,
+} from './dto/request-auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -17,5 +24,12 @@ export class AuthController {
   @Post('/login')
   async login(@Body() request: LoginRequestDto): Promise<TokenResponseDto> {
     return await this.authService.login(request);
+  }
+
+  @Post('/forgot-password')
+  async forgotPassword(
+    @Body() request: ForogtPasswordRequestDto,
+  ): Promise<ForgotPasswordResponseDto> {
+    return await this.authService.forgotPassword(request);
   }
 }

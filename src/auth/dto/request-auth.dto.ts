@@ -11,9 +11,11 @@ import {
 } from 'class-validator';
 
 export class LoginRequestDto {
-  @IsNotEmpty({ message: 'E-mail é obrigatório' })
+  @IsNotEmpty({ message: 'O email é obrigatório' })
+  @IsEmail({}, { message: 'O email deve ser válido' })
   email: string;
-  @IsNotEmpty({ message: 'Senha é obrigatória' })
+
+  @IsNotEmpty({ message: 'A senha é obrigatória' })
   senha: string;
 }
 
@@ -65,4 +67,10 @@ export class RegisterRequestDto {
     message: 'O campo origem do usuário deve ter no máximo 50 caracteres',
   })
   origemUsuario: string;
+}
+
+export class ForogtPasswordRequestDto {
+  @IsNotEmpty({ message: 'O email é obrigatório' })
+  @IsEmail({}, { message: 'O email deve ser válido' })
+  email: string;
 }

@@ -1,4 +1,5 @@
 import { Address } from 'src/address/entities/address.entity';
+import { ResetToken } from 'src/auth/entities/reset_token.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 
 export enum PerfilInvestidor {
@@ -59,6 +61,9 @@ export class User {
 
   @Column({ type: Date, nullable: true })
   perfilInvestidorDefinidoEm?: Date;
+
+  @OneToMany(() => ResetToken, (resetToken) => resetToken.user)
+  resetTokens: ResetToken[];
 
   @OneToOne(() => Address, (address) => address.usuario)
   endereco: Address;

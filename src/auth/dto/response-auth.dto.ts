@@ -5,3 +5,11 @@ export class TokenResponseDto {
     this.accessToken = accessToken;
   }
 }
+
+export class ForgotPasswordResponseDto {
+  message: string;
+
+  constructor(message: string) {
+    this.message = message;
+  }
+}
