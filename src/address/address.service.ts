@@ -15,10 +15,18 @@ export class AddressService {
     createAddressDto: CreateAddressDto,
     user: User,
   ): Promise<Address> {
-    const address = this.addressRepository.create({
-      ...createAddressDto,
-      usuario: user,
+    let address = await this.addressRepository.findOneBy({
+      usuario: { id: user.id },
     });
+
+    if (address) {
+      this.addressRepository.merge(address, createAddressDto);
+    } else {
+      address = this.addressRepository.create({
+        ...createAddressDto,
+        usuario: user,
+      });
+    }
 
     return await this.addressRepository.save(address);
   }

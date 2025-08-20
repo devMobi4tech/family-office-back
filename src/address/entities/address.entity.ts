@@ -27,7 +27,7 @@ export class Address {
   @Column()
   bairro: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: '' })
   complemento?: string;
 
   @Column()
