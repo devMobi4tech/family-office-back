@@ -25,6 +25,12 @@ export class User {
   @Column({ length: 11, unique: true })
   cpf: string;
 
+  @Column({ type: 'date' })
+  dataNascimento: Date;
+
+  @Column({ length: 50 })
+  origemUsuario: string;
+
   @Column({ length: 255, unique: true })
   email: string;
 
@@ -32,7 +38,6 @@ export class User {
   senhaHash: string;
 
   @Column({
-    name: 'foto_perfil_url',
     length: 500,
     nullable: true,
   })
@@ -42,7 +47,6 @@ export class User {
     type: 'decimal',
     precision: 10,
     scale: 2,
-    nullable: true,
   })
   rendaMensal: number;
 
@@ -53,14 +57,11 @@ export class User {
   })
   perfilInvestidor: PerfilInvestidor;
 
-  @Column({ nullable: true })
-  comoConheceuApp: string;
+  @Column({ type: Date, nullable: true })
+  perfilInvestidorDefinidoEm?: Date;
 
   @OneToOne(() => Address, (address) => address.usuario)
   endereco: Address;
-
-  @CreateDateColumn()
-  perfilInvestidorDefinidoEm: Date;
 
   @CreateDateColumn()
   criadoEm: Date;

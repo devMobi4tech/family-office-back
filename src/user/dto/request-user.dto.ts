@@ -1,9 +1,13 @@
+import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsString,
   Length,
   Matches,
+  MaxLength,
+  Min,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -15,8 +19,22 @@ export class CreateUserDto {
   nomeCompleto: string;
 
   @IsNotEmpty({ message: 'O CPF é obrigatório' })
-  @Matches(/^\d{11}$/, { message: 'O CPF deve conter exatamente 11 números' })
+  @Matches(/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/, { message: 'CPF inválido' })
+  @Transform(({ value }) => value.replace(/\D/g, ''))
   cpf: string;
+
+  @IsNotEmpty({ message: 'O campo renda mensal é obrigatório' })
+  @IsNumber({}, { message: 'Renda mensal deve ser um número' })
+  @Min(0, { message: 'Renda mensal não pode ser negativa' })
+  @Transform(({ value }) => Number(value))
+  rendaMensal: number;
+
+  @IsNotEmpty({ message: 'A data de nascimento é obrigatória' })
+  @Length(10, 10, { message: 'A data de nascimento deve ter 10 caracteres' }) // DD/MM/AAAA
+  @Matches(/^\d{2}\/\d{2}\/\d{4}$/, {
+    message: 'Data de nascimento deve estar no formato DD/MM/AAAA',
+  })
+  dataNascimento: string;
 
   @IsNotEmpty({ message: 'O email é obrigatório' })
   @IsEmail({}, { message: 'O email deve ser válido' })
@@ -34,4 +52,10 @@ export class CreateUserDto {
 
   @IsNotEmpty({ message: 'A confirmação de senha é obrigatória' })
   confirmacaoSenha: string;
+
+  @IsNotEmpty({ message: 'O campo origem do usuário é obrigatório' })
+  @MaxLength(50, {
+    message: 'O campo origem do usuário deve ter no máximo 50 caracteres',
+  })
+  origemUsuario: string;
 }

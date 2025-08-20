@@ -28,6 +28,7 @@ export class UserService {
     const user = this.userRepository.create({
       ...createUserDto,
       senhaHash: hashedPassword,
+      dataNascimento: this.parseData(createUserDto.dataNascimento),
     });
     return await this.userRepository.save(user);
   }
@@ -73,5 +74,39 @@ export class UserService {
     if (dto.senha !== dto.confirmacaoSenha) {
       throw new BadRequestException('As senhas não conferem.');
     }
+  }
+
+  private parseData(data: string): Date {
+    if (!data || typeof data !== 'string') {
+      throw new BadRequestException('Data de nascimento inválida');
+    }
+
+    // aceita / ou -
+    const parts = data.split(/[\/-]/);
+    if (parts.length !== 3) {
+      throw new BadRequestException('Data de nascimento inválida');
+    }
+
+    const [dia, mes, ano] = parts.map(Number);
+
+    // validações básicas
+    if (
+      isNaN(dia) ||
+      isNaN(mes) ||
+      isNaN(ano) ||
+      dia < 1 ||
+      dia > 31 ||
+      mes < 1 ||
+      mes > 12
+    ) {
+      throw new BadRequestException('Data de nascimento inválida');
+    }
+
+    // criar Date no formato ISO (YYYY-MM-DD)
+    const date = new Date(
+      `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`,
+    );
+
+    return date;
   }
 }
