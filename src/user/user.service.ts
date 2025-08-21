@@ -14,6 +14,7 @@ import { AddressService } from 'src/address/address.service';
 import { CreateAddressDto } from 'src/address/dto/request-address.dto';
 import { RegisterRequestDto } from 'src/auth/dto/request-auth.dto';
 import { UpdateInvestorProfileRequestDto } from './dto/request-user.dto';
+import { UserResponseDto } from './dto/response-user.dto';
 
 @Injectable()
 export class UserService {
@@ -42,9 +43,9 @@ export class UserService {
   }
 
   async updateAddress(
-    userId: number,
+    userId: string,
     createAddressDto: CreateAddressDto,
-    tokenUserId: number,
+    tokenUserId: string,
   ): Promise<void> {
     if (userId !== tokenUserId) {
       throw new ForbiddenException();
@@ -68,9 +69,9 @@ export class UserService {
   }
 
   async updateInvestorProfile(
-    userId: number,
+    userId: string,
     updateInvestorProfileDto: UpdateInvestorProfileRequestDto,
-    tokenUserId: number,
+    tokenUserId: string,
   ): Promise<void> {
     if (userId !== tokenUserId) {
       throw new ForbiddenException();
@@ -85,6 +86,30 @@ export class UserService {
     user.perfilInvestidorDefinidoEm = new Date();
 
     await this.userRepository.save(user);
+  }
+
+  async getUserProfile(userId: string): Promise<UserResponseDto> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    const endereco = await this.addressService.findByUserId(user.id);
+
+    return {
+      id: user.id,
+      nomeCompleto: user.nomeCompleto,
+      email: user.email,
+      fotoPerfilUrl: user.fotoPerfilUrl,
+      rendaMensal: user.rendaMensal,
+      perfilInvestidor: user.perfilInvestidor,
+      perfilInvestidorDefinidoEm: user.perfilInvestidorDefinidoEm,
+      criadoEm: user.criadoEm,
+      endereco,
+    };
   }
 
   private async validateNewUserData(dto: RegisterRequestDto): Promise<void> {

@@ -18,8 +18,8 @@ export enum PerfilInvestidor {
 
 @Entity('usuarios')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ length: 255 })
   nomeCompleto: string;

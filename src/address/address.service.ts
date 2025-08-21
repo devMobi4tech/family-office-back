@@ -4,6 +4,7 @@ import { Address } from './entities/address.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateAddressDto } from './dto/request-address.dto';
 import { User } from 'src/user/entities/user.entity';
+import { AddressResponseDto } from './dto/response-address.dto';
 
 @Injectable()
 export class AddressService {
@@ -29,5 +30,25 @@ export class AddressService {
     }
 
     return await this.addressRepository.save(address);
+  }
+
+  async findByUserId(userId: string): Promise<AddressResponseDto | undefined> {
+    const endereco = await this.addressRepository.findOne({
+      where: { usuario: { id: userId } },
+    });
+
+    if (!endereco) {
+      return undefined;
+    }
+
+    return {
+      endereco: endereco.endereco,
+      complemento: endereco.complemento ?? '',
+      cidade: endereco.cidade,
+      estado: endereco.estado,
+      cep: endereco.cep,
+      bairro: endereco.bairro,
+      numero: endereco.numero,
+    };
   }
 }
