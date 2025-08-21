@@ -29,7 +29,10 @@ export class AuthController {
     type: TokenResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
-  @ApiResponse({ status: 409, description: 'Email já cadastrado' })
+  @ApiResponse({
+    status: 409,
+    description: 'Algum dado único já existe (ex.: email)',
+  })
   async register(
     @Body() request: RegisterRequestDto,
   ): Promise<TokenResponseDto> {
