@@ -74,7 +74,10 @@ export class AuthController {
     description: 'Token válido',
     type: ValidateResetTokenResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Token inválido ou expirado' })
+  @ApiResponse({
+    status: 400,
+    description: 'Token inválido ou expirado',
+  })
   async validateResetToken(
     @Body() request: ValidateResetTokenRequestDto,
   ): Promise<ValidateResetTokenResponseDto> {
@@ -89,7 +92,10 @@ export class AuthController {
     description: 'Senha redefinida com sucesso',
     type: ResetPasswordResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Token inválido ou expirado' })
+  @ApiResponse({
+    status: 400,
+    description: 'Token inválido ou expirado/senhas não coincidem',
+  })
   async resetPassword(
     @Body() request: ResetPasswordRequestDto,
   ): Promise<ResetPasswordResponseDto> {

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -56,7 +60,7 @@ export class AuthService {
         return new TokenResponseDto(accessToken);
       }
     }
-    throw new BadRequestException('E-mail ou senha incorretos.');
+    throw new UnauthorizedException('E-mail ou senha incorretos.');
   }
 
   async forgotPassword(
