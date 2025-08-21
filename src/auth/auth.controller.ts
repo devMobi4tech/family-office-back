@@ -2,6 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordResponseDto,
+  ResetPasswordResponseDto,
   TokenResponseDto,
   ValidateResetTokenResponseDto,
 } from './dto/response-auth.dto';
@@ -9,6 +10,7 @@ import {
   ForogtPasswordRequestDto,
   LoginRequestDto,
   RegisterRequestDto,
+  ResetPasswordRequestDto,
   ValidateResetTokenRequestDto,
 } from './dto/request-auth.dto';
 
@@ -40,5 +42,12 @@ export class AuthController {
     @Body() request: ValidateResetTokenRequestDto,
   ): Promise<ValidateResetTokenResponseDto> {
     return await this.authService.validateResetToken(request);
+  }
+
+  @Post('/reset-password')
+  async resetPassword(
+    @Body() request: ResetPasswordRequestDto,
+  ): Promise<ResetPasswordResponseDto> {
+    return await this.authService.resetPassword(request);
   }
 }

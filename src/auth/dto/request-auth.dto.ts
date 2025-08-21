@@ -82,6 +82,35 @@ export class ValidateResetTokenRequestDto {
 
   @IsNotEmpty({ message: 'O token é obrigatório' })
   @Length(6, 6, { message: 'O token deve conter exatamente 6 dígitos' })
-  @Matches(/^[0-9]{6}$/, { message: 'O token deve conter apenas números' })
+  @IsString({ message: 'O token deve ser enviado em forma de string' })
   token: string;
+
+  constructor(email: string, token: string) {
+    this.email = email;
+    this.token = token;
+  }
+}
+
+export class ResetPasswordRequestDto {
+  @IsNotEmpty({ message: 'O token é obrigatório' })
+  @Length(6, 6, { message: 'O token deve conter exatamente 6 dígitos' })
+  @IsString({ message: 'O token deve ser enviado em forma de string' })
+  token: string;
+
+  @IsNotEmpty({ message: 'O email é obrigatório' })
+  @IsEmail({}, { message: 'O email deve ser válido' })
+  email: string;
+
+  @IsNotEmpty({ message: 'A senha é obrigatória' })
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+    {
+      message:
+        'Senha fraca. Use pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e caractere especial.',
+    },
+  )
+  senha: string;
+
+  @IsNotEmpty({ message: 'A confirmação de senha é obrigatória' })
+  confirmacaoSenha: string;
 }

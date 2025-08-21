@@ -55,6 +55,15 @@ export class UserService {
     return await this.addressService.create(createAddressDto, user);
   }
 
+  async updatePassword(user: User, password: string): Promise<void> {
+    const isSame = await bcrypt.compare(password, user.senhaHash);
+    if (isSame) return;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.senhaHash = hashedPassword;
+    await this.userRepository.save(user);
+  }
+
   private async validateNewUserData(dto: RegisterRequestDto): Promise<void> {
     const emailExists = await this.userRepository.findOne({
       where: { email: dto.email },

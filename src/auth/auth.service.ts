@@ -7,16 +7,19 @@ import {
   ForogtPasswordRequestDto,
   LoginRequestDto,
   RegisterRequestDto,
+  ResetPasswordRequestDto,
   ValidateResetTokenRequestDto,
 } from './dto/request-auth.dto';
 import {
   ForgotPasswordResponseDto,
+  ResetPasswordResponseDto,
   TokenResponseDto,
   ValidateResetTokenResponseDto,
 } from './dto/response-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResetToken } from './entities/reset_token.entity';
-import { MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { REQUEST } from '@nestjs/core';
 
 @Injectable()
 export class AuthService {
@@ -107,6 +110,37 @@ export class AuthService {
     throw new BadRequestException('Token inválido ou expirado.');
   }
 
+  async resetPassword(
+    request: ResetPasswordRequestDto,
+  ): Promise<ResetPasswordResponseDto> {
+    if (request.senha !== request.confirmacaoSenha) {
+      throw new BadRequestException('As senhas não conferem.');
+    }
+    const user = await this.userService.findByEmail(request.email);
+    if (!user) {
+      throw new BadRequestException('Token inválido ou expirado.');
+    }
+
+    const validateResetTokenRequestDto = new ValidateResetTokenRequestDto(
+      request.email,
+      request.token,
+    );
+    const validateResetToken = await this.validateResetToken(
+      validateResetTokenRequestDto,
+    );
+    if (!validateResetToken.isValid) {
+      throw new BadRequestException('Token inválido ou expirado.');
+    }
+
+    await this.userService.updatePassword(user, request.senha);
+    await this.resetTokensRepository.delete({ user: { id: user.id } });
+
+    return new ResetPasswordResponseDto(
+      true,
+      'Senha alterada com sucesso. Você já pode fazer login com a nova senha.',
+    );
+  }
+
   private generatePasswordResetToken(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
@@ -118,7 +152,7 @@ export class AuthService {
     return resetTokens;
   }
 
-  verifyIfUserHasRecentTokens(
+  private verifyIfUserHasRecentTokens(
     recentTokens: ResetToken[],
     minutes: number,
   ): boolean {
