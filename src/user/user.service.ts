@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
@@ -69,14 +70,14 @@ export class UserService {
       where: { email: dto.email },
     });
     if (emailExists) {
-      throw new BadRequestException('Email já cadastrado.');
+      throw new ConflictException('Email já cadastrado.');
     }
 
     const cpfExists = await this.userRepository.findOne({
       where: { cpf: dto.cpf },
     });
     if (cpfExists) {
-      throw new BadRequestException('CPF já cadastrado.');
+      throw new ConflictException('CPF já cadastrado.');
     }
 
     if (dto.senha !== dto.confirmacaoSenha) {
