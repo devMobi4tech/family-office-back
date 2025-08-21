@@ -11,7 +11,7 @@ import { ResetToken } from './entities/reset_token.entity';
     UserModule,
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET || 'secret',
+      secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '6h' },
     }),
     TypeOrmModule.forFeature([ResetToken]),
