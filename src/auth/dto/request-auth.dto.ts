@@ -74,3 +74,14 @@ export class ForogtPasswordRequestDto {
   @IsEmail({}, { message: 'O email deve ser válido' })
   email: string;
 }
+
+export class ValidateResetTokenRequestDto {
+  @IsNotEmpty({ message: 'O email é obrigatório' })
+  @IsEmail({}, { message: 'O email deve ser válido' })
+  email: string;
+
+  @IsNotEmpty({ message: 'O token é obrigatório' })
+  @Length(6, 6, { message: 'O token deve conter exatamente 6 dígitos' })
+  @Matches(/^[0-9]{6}$/, { message: 'O token deve conter apenas números' })
+  token: string;
+}

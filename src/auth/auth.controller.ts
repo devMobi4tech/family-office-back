@@ -3,11 +3,13 @@ import { AuthService } from './auth.service';
 import {
   ForgotPasswordResponseDto,
   TokenResponseDto,
+  ValidateResetTokenResponseDto,
 } from './dto/response-auth.dto';
 import {
   ForogtPasswordRequestDto,
   LoginRequestDto,
   RegisterRequestDto,
+  ValidateResetTokenRequestDto,
 } from './dto/request-auth.dto';
 
 @Controller('auth')
@@ -31,5 +33,12 @@ export class AuthController {
     @Body() request: ForogtPasswordRequestDto,
   ): Promise<ForgotPasswordResponseDto> {
     return await this.authService.forgotPassword(request);
+  }
+
+  @Post('/validate-reset-token')
+  async validateResetToken(
+    @Body() request: ValidateResetTokenRequestDto,
+  ): Promise<ValidateResetTokenResponseDto> {
+    return await this.authService.validateResetToken(request);
   }
 }
