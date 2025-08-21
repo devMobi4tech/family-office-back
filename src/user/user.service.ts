@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -43,17 +44,17 @@ export class UserService {
     userId: number,
     createAddressDto: CreateAddressDto,
     tokenUserId: number,
-  ): Promise<Address> {
+  ): Promise<void> {
     if (userId !== tokenUserId) {
       throw new ForbiddenException();
     }
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new ForbiddenException();
+      throw new NotFoundException();
     }
 
-    return await this.addressService.create(createAddressDto, user);
+    this.addressService.create(createAddressDto, user);
   }
 
   async updatePassword(user: User, password: string): Promise<void> {
