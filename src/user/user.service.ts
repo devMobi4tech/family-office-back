@@ -43,16 +43,14 @@ export class UserService {
   }
 
   async updateAddress(
-    userId: string,
     createAddressDto: CreateAddressDto,
     tokenUserId: string,
   ): Promise<void> {
-    if (userId !== tokenUserId) {
-      throw new ForbiddenException();
-    }
-
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({
+      where: { id: tokenUserId },
+    });
     if (!user) {
+      console.log(user);
       throw new NotFoundException();
     }
 

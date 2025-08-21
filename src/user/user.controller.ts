@@ -28,9 +28,11 @@ export class UserController {
   constructor(private userSerivce: UserService) {}
 
   @UseGuards(AuthGuard)
-  @ApiBearerAuth() // indica que precisa de token JWT
-  @Put(':id/address')
-  @ApiOperation({ summary: 'Adiciona/Atualiza o endereço de um usuário' })
+  @ApiBearerAuth()
+  @Put('/address')
+  @ApiOperation({
+    summary: 'Adiciona/Atualiza o endereço do usuário autenticado',
+  })
   @ApiBody({ type: CreateAddressDto })
   @ApiResponse({ status: 204, description: 'Endereço atualizado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
@@ -38,11 +40,10 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   @HttpCode(204)
   async updateAddress(
-    @Param('id') id: string,
     @Body() dto: CreateAddressDto,
     @Req() req,
   ): Promise<void> {
-    await this.userSerivce.updateAddress(id, dto, req.user.id);
+    await this.userSerivce.updateAddress(dto, req.user.id);
   }
 
   @Put('/investor-profile')
