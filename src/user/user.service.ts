@@ -71,12 +71,7 @@ export class UserService {
   async updateInvestorProfile(
     userId: string,
     updateInvestorProfileDto: UpdateInvestorProfileRequestDto,
-    tokenUserId: string,
   ): Promise<void> {
-    if (userId !== tokenUserId) {
-      throw new ForbiddenException();
-    }
-
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException();

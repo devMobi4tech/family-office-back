@@ -45,27 +45,25 @@ export class UserController {
     await this.userSerivce.updateAddress(id, dto, req.user.id);
   }
 
-  @Put(':id/investor-profile')
+  @Put('/investor-profile')
   @UseGuards(AuthGuard)
-  @ApiBearerAuth() // Indica que precisa de token JWT
-  @ApiOperation({ summary: 'Atualiza o perfil de investidor do usuário' })
-  @ApiParam({ name: 'id', description: 'ID do usuário', type: Number })
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Atualiza o perfil de investidor do usuário logado',
+  })
   @ApiResponse({ status: 204, description: 'Perfil atualizado com sucesso' })
   @ApiResponse({
-    status: 403,
-    description: 'Usuário não autorizado a alterar outro perfil',
+    status: 401,
+    description: 'Usuário não autenticado',
   })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   @HttpCode(204)
   async updateInvestorProfile(
-    @Param('id') id: string,
     @Body() updateInvestorProfileRequestDto: UpdateInvestorProfileRequestDto,
     @Req() req,
   ): Promise<void> {
     await this.userSerivce.updateInvestorProfile(
-      id,
-      updateInvestorProfileRequestDto,
       req.user.id,
+      updateInvestorProfileRequestDto,
     );
   }
 
