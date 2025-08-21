@@ -17,7 +17,7 @@ async function bootstrap() {
     .setTitle('Family Office Back')
     .setDescription('Documentação da API do Family Office')
     .setVersion('1.0')
-    .addTag('family-office')
+    .addTag('family-office-back')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

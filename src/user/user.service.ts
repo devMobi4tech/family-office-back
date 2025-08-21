@@ -13,6 +13,7 @@ import { Address } from 'src/address/entities/address.entity';
 import { AddressService } from 'src/address/address.service';
 import { CreateAddressDto } from 'src/address/dto/request-address.dto';
 import { RegisterRequestDto } from 'src/auth/dto/request-auth.dto';
+import { UpdateInvestorProfileRequestDto } from './dto/request-user.dto';
 
 @Injectable()
 export class UserService {
@@ -63,6 +64,26 @@ export class UserService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     user.senhaHash = hashedPassword;
+    await this.userRepository.save(user);
+  }
+
+  async updateInvestorProfile(
+    userId: number,
+    updateInvestorProfileDto: UpdateInvestorProfileRequestDto,
+    tokenUserId: number,
+  ): Promise<void> {
+    if (userId !== tokenUserId) {
+      throw new ForbiddenException();
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    user.perfilInvestidor = updateInvestorProfileDto.perfilInvestidor;
+    user.perfilInvestidorDefinidoEm = new Date();
+
     await this.userRepository.save(user);
   }
 
