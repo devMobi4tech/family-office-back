@@ -12,7 +12,10 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginRequestDto {
-  @ApiProperty({ example: 'joao@example.com', description: 'Email do usuário' })
+  @ApiProperty({
+    example: 'fulano@example.com',
+    description: 'Email do usuário',
+  })
   @IsNotEmpty({ message: 'O email é obrigatório' })
   @IsEmail({}, { message: 'O email deve ser válido' })
   email: string;
@@ -24,7 +27,7 @@ export class LoginRequestDto {
 
 export class RegisterRequestDto {
   @ApiProperty({
-    example: 'João Victor',
+    example: 'Fulano da Silva',
     description: 'Nome completo do usuário',
   })
   @IsNotEmpty()
@@ -57,7 +60,10 @@ export class RegisterRequestDto {
   @Matches(/^\d{2}\/\d{2}\/\d{4}$/)
   dataNascimento: string;
 
-  @ApiProperty({ example: 'joao@example.com', description: 'Email do usuário' })
+  @ApiProperty({
+    example: 'fulano@example.com',
+    description: 'Email do usuário',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;
@@ -84,7 +90,7 @@ export class RegisterRequestDto {
 
 export class ForogtPasswordRequestDto {
   @ApiProperty({
-    example: 'joao@example.com',
+    example: 'fulano@example.com',
     description: 'Email do usuário para redefinição de senha',
   })
   @IsNotEmpty()
@@ -93,7 +99,10 @@ export class ForogtPasswordRequestDto {
 }
 
 export class ValidateResetTokenRequestDto {
-  @ApiProperty({ example: 'joao@example.com', description: 'Email do usuário' })
+  @ApiProperty({
+    example: 'fulano@example.com',
+    description: 'Email do usuário',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;
@@ -123,7 +132,10 @@ export class ResetPasswordRequestDto {
   @IsString()
   token: string;
 
-  @ApiProperty({ example: 'joao@example.com', description: 'Email do usuário' })
+  @ApiProperty({
+    example: 'fulano@example.com',
+    description: 'Email do usuário',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;
