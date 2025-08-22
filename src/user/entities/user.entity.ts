@@ -8,7 +8,10 @@ import {
   UpdateDateColumn,
   OneToOne,
   OneToMany,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 export enum PerfilInvestidor {
   CONSERVADOR = 'CONSERVADOR',
@@ -37,7 +40,7 @@ export class User {
   email: string;
 
   @Column({ length: 255 })
-  senhaHash: string;
+  senha: string;
 
   @Column({
     length: 500,
@@ -73,4 +76,10 @@ export class User {
 
   @UpdateDateColumn()
   atualizadoEm: Date;
+
+  @BeforeUpdate()
+  @BeforeInsert()
+  private async hashPassword() {
+    this.senha = await bcrypt.hash(this.senha, 10);
+  }
 }

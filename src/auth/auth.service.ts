@@ -55,7 +55,7 @@ export class AuthService {
   async login(request: LoginRequestDto): Promise<TokenResponseDto> {
     const user = await this.userService.findByEmail(request.email);
     if (user) {
-      const isMatch = await bcrypt.compare(request.senha, user.senhaHash);
+      const isMatch = await bcrypt.compare(request.senha, user.senha);
       if (isMatch) {
         const accessToken = await this.generateToken(user);
         return new TokenResponseDto(accessToken);

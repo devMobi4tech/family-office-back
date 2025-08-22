@@ -26,11 +26,8 @@ export class UserService {
   async createUser(createUserDto: RegisterRequestDto): Promise<User> {
     await this.validateNewUserData(createUserDto);
 
-    const hashedPassword = await bcrypt.hash(createUserDto.senha, 10);
-
     const user = this.userRepository.create({
       ...createUserDto,
-      senhaHash: hashedPassword,
     });
     return await this.userRepository.save(user);
   }
@@ -56,11 +53,10 @@ export class UserService {
   }
 
   async updatePassword(user: User, password: string): Promise<void> {
-    const isSame = await bcrypt.compare(password, user.senhaHash);
+    const isSame = await bcrypt.compare(password, user.senha);
     if (isSame) return;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user.senhaHash = hashedPassword;
+    user.senha = password;
     await this.userRepository.save(user);
   }
 
