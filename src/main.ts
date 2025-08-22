@@ -13,6 +13,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('Family Office Back')
     .setDescription('Documentação da API do Family Office')
