@@ -72,25 +72,24 @@ export class AuthService {
       const userResetTokens = await this.getResetTokensFromUser(user);
       if (this.verifyIfUserHasRecentTokens(userResetTokens, 5)) {
         // Gerar novo reset token apenas caso o usuário não tenha feito uma solicitação nos ultimos 5 minutos
-        const agoraUTC = new Date();
-        const token = this.generatePasswordResetToken();
-        const resetCode = this.resetTokensRepository.create({
-          user,
-          tokenHash: await bcrypt.hash(token, 10),
-          expiraEm: new Date(agoraUTC.getTime() + 15 * 60 * 1000), // 15 minutos
+        const code = this.generatePasswordResetToken();
+        const resetToken = this.resetTokensRepository.create({
+          user: user,
+          codigo: code,
+          expiraEm: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos a partir de agora
         });
 
         await this.emailService.sendUserRecoverPasswordToken(
           user.nomeCompleto,
           user.email,
-          token,
+          code,
         );
 
-        await this.resetTokensRepository.save(resetCode);
+        await this.resetTokensRepository.save(resetToken);
       }
     }
     return new ForgotPasswordResponseDto(
-      'Se o e-mail estiver cadastrado, um token foi enviado para redefinição de senha. ' +
+      'Se o e-mail estiver cadastrado, um código foi enviado para redefinição de senha. ' +
         'Se você não recebeu, aguarde alguns minutos antes de tentar novamente.',
     );
   }
@@ -106,16 +105,16 @@ export class AuthService {
           await this.resetTokensRepository.remove(reset);
           continue;
         }
-        const isMatch = await bcrypt.compare(request.token, reset.tokenHash);
+        const isMatch = await bcrypt.compare(request.codigo, reset.codigo);
         if (isMatch) {
           return new ValidateResetTokenResponseDto(
             true,
-            'Token válido. Pode prosseguir com a redefinição de senha.',
+            'Código válido. Pode prosseguir com a redefinição de senha.',
           );
         }
       }
     }
-    throw new BadRequestException('Token inválido ou expirado.');
+    throw new BadRequestException('Código inválido ou expirado.');
   }
 
   async resetPassword(
@@ -131,7 +130,7 @@ export class AuthService {
 
     const validateResetTokenRequestDto = new ValidateResetTokenRequestDto(
       request.email,
-      request.token,
+      request.codigo,
     );
     const validateResetToken = await this.validateResetToken(
       validateResetTokenRequestDto,

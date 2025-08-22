@@ -109,28 +109,26 @@ export class ValidateResetTokenRequestDto {
 
   @ApiProperty({
     example: '123456',
-    description: 'Token de redefinição recebido por email',
+    description: 'Código de redefinição recebido por email',
   })
   @IsNotEmpty()
-  @Length(6, 6)
   @IsString()
-  token: string;
+  codigo: string;
 
-  constructor(email: string, token: string) {
+  constructor(email: string, codigo: string) {
     this.email = email;
-    this.token = token;
+    this.codigo = codigo;
   }
 }
 
 export class ResetPasswordRequestDto {
   @ApiProperty({
     example: '123456',
-    description: 'Token de redefinição recebido por email',
+    description: 'Código de redefinição recebido por email',
   })
   @IsNotEmpty()
-  @Length(6, 6)
   @IsString()
-  token: string;
+  codigo: string;
 
   @ApiProperty({
     example: 'fulano@example.com',

@@ -25,10 +25,10 @@ export class ForgotPasswordResponseDto {
 }
 
 export class ValidateResetTokenResponseDto {
-  @ApiProperty({ example: true, description: 'Indica se o token é válido' })
+  @ApiProperty({ example: true, description: 'Indica se o código é válido' })
   isValid: boolean;
 
-  @ApiProperty({ example: 'Token válido', description: 'Mensagem de retorno' })
+  @ApiProperty({ example: 'Código válido', description: 'Mensagem de retorno' })
   message: string;
 
   constructor(isValid: boolean, message: string) {

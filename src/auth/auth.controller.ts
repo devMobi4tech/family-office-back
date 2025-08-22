@@ -57,7 +57,8 @@ export class AuthController {
   @ApiBody({ type: ForogtPasswordRequestDto })
   @ApiResponse({
     status: 200,
-    description: 'Email de redefinição enviado caso exista usuário cadastrado',
+    description:
+      'E-mail com código de redefinição de senha enviado caso exista usuário cadastrado',
     type: ForgotPasswordResponseDto,
   })
   async forgotPassword(
@@ -67,16 +68,16 @@ export class AuthController {
   }
 
   @Post('/validate-reset-token')
-  @ApiOperation({ summary: 'Valida token de redefinição de senha' })
+  @ApiOperation({ summary: 'Valida código de redefinição de senha' })
   @ApiBody({ type: ValidateResetTokenRequestDto })
   @ApiResponse({
     status: 200,
-    description: 'Token válido',
+    description: 'Código válido',
     type: ValidateResetTokenResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Token inválido ou expirado',
+    description: 'Código inválido ou expirado',
   })
   async validateResetToken(
     @Body() request: ValidateResetTokenRequestDto,
@@ -94,7 +95,7 @@ export class AuthController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Token inválido ou expirado/senhas não coincidem',
+    description: 'Código inválido ou expirado/senhas não coincidem',
   })
   async resetPassword(
     @Body() request: ResetPasswordRequestDto,

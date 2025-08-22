@@ -1,5 +1,6 @@
 import { User } from 'src/user/entities/user.entity';
 import {
+  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
@@ -7,6 +8,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Entity('reset_tokens')
 export class ResetToken {
@@ -18,7 +20,7 @@ export class ResetToken {
 
   @Column({ type: 'varchar', length: 255 })
   @Index()
-  tokenHash: string;
+  codigo: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   criadoEm: Date;
@@ -26,10 +28,8 @@ export class ResetToken {
   @Column({ type: 'timestamp' })
   expiraEm: Date;
 
-  @Column({
-    type: 'enum',
-    enum: ['ativo', 'usado', 'expirado'],
-    default: 'ativo',
-  })
-  status: 'ativo' | 'usado' | 'expirado';
+  @BeforeInsert()
+  async hashCode() {
+    this.codigo = await bcrypt.hash(this.codigo, 10);
+  }
 }
