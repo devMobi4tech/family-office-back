@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import {
+  IsDateString,
   IsEmail,
   IsNotEmpty,
   IsNumber,
@@ -52,13 +53,18 @@ export class RegisterRequestDto {
   rendaMensal: number;
 
   @ApiProperty({
-    example: '01/01/1990',
-    description: 'Data de nascimento DD/MM/AAAA',
+    example: '1990-01-01',
+    description: 'Data de nascimento AAAA-MM-DD',
   })
   @IsNotEmpty()
-  @Length(10, 10)
-  @Matches(/^\d{2}\/\d{2}\/\d{4}$/)
-  dataNascimento: string;
+  @Transform(({ value }) => value?.toISOString().split('T')[0], {
+    toPlainOnly: true,
+  })
+  @IsDateString(
+    {},
+    { message: 'dataNascimento deve estar no formato AAAA-MM-DD' },
+  )
+  dataNascimento: Date;
 
   @ApiProperty({
     example: 'fulano@example.com',
