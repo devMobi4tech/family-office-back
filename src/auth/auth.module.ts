@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ResetToken } from './entities/reset_token.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EmailModule } from 'src/mail/email.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     UserModule,
     TypeOrmModule.forFeature([ResetToken]),
+    EmailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

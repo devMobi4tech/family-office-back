@@ -4,6 +4,7 @@ import { AuthModule } from './auth/auth.module';
 import { AddressModule } from './address/address.module';
 import { TypeORMModule } from './config/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
+import { EmailModule } from './mail/email.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
     UserModule,
     AuthModule,
     AddressModule,
+    EmailModule,
   ],
 })
 export class AppModule {}

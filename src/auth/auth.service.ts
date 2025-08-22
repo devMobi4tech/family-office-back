@@ -23,7 +23,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResetToken } from './entities/reset_token.entity';
 import { Repository } from 'typeorm';
-import { REQUEST } from '@nestjs/core';
+import { EmailService } from 'src/mail/email.service';
 
 @Injectable()
 export class AuthService {
@@ -32,6 +32,7 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectRepository(ResetToken)
     private resetTokensRepository: Repository<ResetToken>,
+    private emailService: EmailService,
   ) {}
 
   async register(request: RegisterRequestDto): Promise<TokenResponseDto> {
@@ -79,8 +80,11 @@ export class AuthService {
           expiraEm: new Date(agoraUTC.getTime() + 15 * 60 * 1000), // 15 minutos
         });
 
-        // TODO: Enviar token para e-mail do usuário
-        console.log(token);
+        await this.emailService.sendUserRecoverPasswordToken(
+          user.nomeCompleto,
+          user.email,
+          token,
+        );
 
         await this.resetTokensRepository.save(resetCode);
       }

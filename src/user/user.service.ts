@@ -50,7 +50,6 @@ export class UserService {
       where: { id: tokenUserId },
     });
     if (!user) {
-      console.log(user);
       throw new NotFoundException();
     }
 
