@@ -50,13 +50,14 @@ export class UserController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Atualiza o perfil de investidor do usuário logado',
+    summary: 'Atualiza o perfil de investidor do usuário autenticado',
   })
   @ApiResponse({ status: 204, description: 'Perfil atualizado com sucesso' })
   @ApiResponse({
     status: 401,
     description: 'Usuário não autenticado',
   })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   @HttpCode(204)
   async updateInvestorProfile(
     @Body() updateInvestorProfileRequestDto: UpdateInvestorProfileRequestDto,
