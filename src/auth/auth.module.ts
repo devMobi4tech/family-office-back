@@ -5,15 +5,22 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ResetToken } from './entities/reset_token.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    UserModule,
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '6h' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => {
+        return {
+          global: true,
+          secret: config.get<string>('JWT_SECRET'),
+          signOptions: { expiresIn: config.get<string>('JWT_EXPIRES_IN') },
+        };
+      },
+      inject: [ConfigService],
     }),
+    UserModule,
     TypeOrmModule.forFeature([ResetToken]),
   ],
   controllers: [AuthController],
