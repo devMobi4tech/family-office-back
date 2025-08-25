@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordResponseDto,
@@ -13,7 +13,15 @@ import {
   ResetPasswordRequestDto,
   ValidateResetTokenRequestDto,
 } from './dto/request-auth.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import type { Response } from 'express';
+import axios from 'axios';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -101,5 +109,48 @@ export class AuthController {
     @Body() request: ResetPasswordRequestDto,
   ): Promise<ResetPasswordResponseDto> {
     return await this.authService.resetPassword(request);
+  }
+
+  @Get('/google/login')
+  @ApiOperation({ summary: 'Redireciona para login via Google' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirecionamento para o Google OAuth',
+  })
+  async googleLogin(@Res() res: Response) {
+    const url = this.authService.getGoogleCallbackUrl();
+    return res.redirect(url);
+  }
+
+  @Get('/google/callback')
+  @ApiOperation({ summary: 'Callback do Google OAuth' })
+  @ApiQuery({
+    name: 'code',
+    required: true,
+    description: 'Código de autorização fornecido pelo Google',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Retorna o access token do usuário',
+    schema: {
+      example: { accessToken: 'eyJhbGciOiJIUzI1NiIsInR...' },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'O email já está cadastrado com senha. Use login tradicional',
+    schema: {
+      example: {
+        statusCode: 400,
+        message:
+          'Este email já está cadastrado com senha. Use login tradicional.',
+      },
+    },
+  })
+  async googleCallback(@Query('code') code: string, @Res() res: Response) {
+    const { accessToken: string } =
+      await this.authService.loginUserWithGoogle(code);
+
+    return res.json({ accessToken: string });
   }
 }

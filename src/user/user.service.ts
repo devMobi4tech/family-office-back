@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+import { TipoAutenticacao, User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Address } from 'src/address/entities/address.entity';
@@ -97,6 +97,28 @@ export class UserService {
       criadoEm: user.criadoEm,
       endereco,
     };
+  }
+
+  async loginWithGoogle(userData: any): Promise<User> {
+    const existingUser = await this.findByEmail(userData.email);
+
+    if (!existingUser) {
+      const user = this.userRepository.create({
+        nomeCompleto: userData.name,
+        fotoPerfilUrl: userData.picture,
+        email: userData.email,
+        tipoAutenticacao: TipoAutenticacao.GOOGLE,
+      });
+      return await this.userRepository.save(user);
+    }
+
+    if (existingUser.tipoAutenticacao !== TipoAutenticacao.GOOGLE) {
+      throw new BadRequestException(
+        'Este email já está cadastrado com senha. Use login tradicional.',
+      );
+    }
+
+    return existingUser;
   }
 
   private async validateNewUserData(dto: RegisterRequestDto): Promise<void> {

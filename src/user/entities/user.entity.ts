@@ -19,6 +19,11 @@ export enum PerfilInvestidor {
   ARROJADO = 'ARROJADO',
 }
 
+export enum TipoAutenticacao {
+  LOCAL = 'LOCAL', // Usuário com email e senha
+  GOOGLE = 'GOOGLE', // Usuário via Google OAuth
+}
+
 @Entity('usuarios')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -27,19 +32,19 @@ export class User {
   @Column({ length: 255 })
   nomeCompleto: string;
 
-  @Column({ length: 11, unique: true })
+  @Column({ length: 11, unique: true, nullable: true })
   cpf: string;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   dataNascimento: Date;
 
-  @Column({ length: 50 })
+  @Column({ length: 50, nullable: true })
   origemUsuario: string;
 
   @Column({ length: 255, unique: true })
   email: string;
 
-  @Column({ length: 255 })
+  @Column({ length: 255, nullable: true })
   senha: string;
 
   @Column({
@@ -52,6 +57,7 @@ export class User {
     type: 'decimal',
     precision: 10,
     scale: 2,
+    nullable: true,
   })
   rendaMensal: number;
 
@@ -71,6 +77,14 @@ export class User {
   @OneToOne(() => Address, (address) => address.usuario)
   endereco: Address;
 
+  @Column({
+    type: 'enum',
+    enum: TipoAutenticacao,
+    default: TipoAutenticacao.LOCAL,
+    nullable: false,
+  })
+  tipoAutenticacao: TipoAutenticacao;
+
   @CreateDateColumn()
   criadoEm: Date;
 
@@ -80,6 +94,8 @@ export class User {
   @BeforeUpdate()
   @BeforeInsert()
   private async hashPassword() {
-    this.senha = await bcrypt.hash(this.senha, 10);
+    if (this.senha) {
+      this.senha = await bcrypt.hash(this.senha, 10);
+    }
   }
 }

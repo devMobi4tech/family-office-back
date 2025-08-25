@@ -8,7 +8,9 @@ import { EmailModule } from './mail/email.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeORMModule,
     UserModule,
     AuthModule,

@@ -24,6 +24,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ResetToken } from './entities/reset_token.entity';
 import { Repository } from 'typeorm';
 import { EmailService } from 'src/mail/email.service';
+import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +35,7 @@ export class AuthService {
     @InjectRepository(ResetToken)
     private resetTokensRepository: Repository<ResetToken>,
     private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   async register(request: RegisterRequestDto): Promise<TokenResponseDto> {
@@ -146,6 +149,52 @@ export class AuthService {
       true,
       'Senha alterada com sucesso. Você já pode fazer login com a nova senha.',
     );
+  }
+
+  getGoogleCallbackUrl(): string {
+    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI');
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const scope = [
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ].join(' ');
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=consent`;
+  }
+
+  async loginUserWithGoogle(code: string): Promise<TokenResponseDto> {
+    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI')!;
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')!;
+    const clientSecret = this.configService.get<string>('GOOGLE_SECRET')!;
+
+    const tokenResponse = await axios.post(
+      'https://oauth2.googleapis.com/token',
+      new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }).toString(),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+
+    const userResponse = await axios.get(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    const userData = userResponse.data;
+
+    return this.googleLogin(userData);
+  }
+
+  async googleLogin(userData: any): Promise<TokenResponseDto> {
+    const user = await this.userService.loginWithGoogle(userData);
+    const accessToken = await this.generateToken(user);
+    return new TokenResponseDto(accessToken);
   }
 
   private generatePasswordResetToken(): string {
