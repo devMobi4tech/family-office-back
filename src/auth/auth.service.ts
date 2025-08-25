@@ -73,13 +73,17 @@ export class AuthService {
     const user = await this.userService.findByEmail(request.email);
     if (user && user.tipoAutenticacao === TipoAutenticacao.LOCAL) {
       const userResetTokens = await this.getResetTokensFromUser(user);
-      if (this.verifyIfUserHasRecentTokens(userResetTokens, 5)) {
-        // Gerar novo reset token apenas caso o usuário não tenha feito uma solicitação nos ultimos 5 minutos
+
+      // Só gera um novo código se NÃO houver solicitado nos últimos 5 minutos
+      if (!this.verifyIfUserHasRecentTokens(userResetTokens, 5)) {
+        if (userResetTokens) {
+          this.resetTokensRepository.remove(userResetTokens);
+        }
         const code = this.generatePasswordResetToken();
         const resetToken = this.resetTokensRepository.create({
           user: user,
           codigo: code,
-          expiraEm: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos a partir de agora
+          expiraEm: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos
         });
 
         await this.emailService.sendUserRecoverPasswordToken(
@@ -224,10 +228,12 @@ export class AuthService {
     minutes: number,
   ): boolean {
     const now = new Date();
+    const limite = now.getTime() - minutes * 60 * 1000;
+
     const recentToken = recentTokens.find(
-      (token) => now.getTime() - token.criadoEm.getTime() < minutes * 60 * 1000,
+      (token) => token.criadoEm.getTime() > limite,
     );
 
-    return recentToken == undefined;
+    return recentToken !== undefined;
   }
 }

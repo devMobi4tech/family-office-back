@@ -26,7 +26,7 @@ const ConnectionsTypes = {
           database: config.get<string>('DATABASE_NAME'),
           entities: [User, Address, ResetToken],
           synchronize: config.get<boolean>('DATABASE_SYNCHRONIZE'),
-          // logging: ['query'],
+          timezone: 'z',
         };
       },
       inject: [ConfigService],
