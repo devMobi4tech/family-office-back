@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordResponseDto,
@@ -131,9 +139,19 @@ export class AuthController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Retorna o access token do usuário',
+    description: 'Login via Google bem-sucedido. Retorna access token',
     schema: {
       example: { accessToken: 'eyJhbGciOiJIUzI1NiIsInR...' },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Código de autorização inválido ou não fornecido',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Código de autorização inválido ou expirado',
+      },
     },
   })
   @ApiResponse({
@@ -148,9 +166,15 @@ export class AuthController {
     },
   })
   async googleCallback(@Query('code') code: string, @Res() res: Response) {
-    const { accessToken: string } =
-      await this.authService.loginUserWithGoogle(code);
+    try {
+      const { accessToken: string } =
+        await this.authService.loginUserWithGoogle(code);
 
-    return res.json({ accessToken: string });
+      return res.json({ accessToken: string });
+    } catch (err) {
+      throw new BadRequestException(
+        'Código de autorização inválido ou expirado',
+      );
+    }
   }
 }

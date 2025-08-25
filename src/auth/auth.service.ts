@@ -163,6 +163,10 @@ export class AuthService {
   }
 
   async loginUserWithGoogle(code: string): Promise<TokenResponseDto> {
+    if (!code) {
+      throw new BadRequestException('Código de autorização não fornecido');
+    }
+
     const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI')!;
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')!;
     const clientSecret = this.configService.get<string>('GOOGLE_SECRET')!;
