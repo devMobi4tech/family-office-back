@@ -166,15 +166,9 @@ export class AuthController {
     },
   })
   async googleCallback(@Query('code') code: string, @Res() res: Response) {
-    try {
-      const { accessToken: string } =
-        await this.authService.loginUserWithGoogle(code);
+    const { accessToken: string } =
+      await this.authService.loginUserWithGoogle(code);
 
-      return res.json({ accessToken: string });
-    } catch (err) {
-      throw new BadRequestException(
-        'Código de autorização inválido ou expirado',
-      );
-    }
+    return res.json({ accessToken: string });
   }
 }

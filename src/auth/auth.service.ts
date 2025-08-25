@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/user/entities/user.entity';
+import { TipoAutenticacao, User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import {
@@ -71,7 +71,7 @@ export class AuthService {
     request: ForogtPasswordRequestDto,
   ): Promise<ForgotPasswordResponseDto> {
     const user = await this.userService.findByEmail(request.email);
-    if (user) {
+    if (user && user.tipoAutenticacao === TipoAutenticacao.LOCAL) {
       const userResetTokens = await this.getResetTokensFromUser(user);
       if (this.verifyIfUserHasRecentTokens(userResetTokens, 5)) {
         // Gerar novo reset token apenas caso o usuário não tenha feito uma solicitação nos ultimos 5 minutos
@@ -171,17 +171,24 @@ export class AuthService {
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')!;
     const clientSecret = this.configService.get<string>('GOOGLE_SECRET')!;
 
-    const tokenResponse = await axios.post(
-      'https://oauth2.googleapis.com/token',
-      new URLSearchParams({
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
-      }).toString(),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
-    );
+    let tokenResponse: any;
+    try {
+      tokenResponse = await axios.post(
+        'https://oauth2.googleapis.com/token',
+        new URLSearchParams({
+          code,
+          client_id: clientId,
+          client_secret: clientSecret,
+          redirect_uri: redirectUri,
+          grant_type: 'authorization_code',
+        }).toString(),
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
+      );
+    } catch (error: any) {
+      throw new BadRequestException(
+        'Código de autorização inválido ou expirado',
+      );
+    }
 
     const accessToken = tokenResponse.data.access_token;
 
