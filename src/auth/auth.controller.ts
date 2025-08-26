@@ -1,12 +1,4 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post,
-  Query,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordResponseDto,
@@ -29,7 +21,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
-import axios from 'axios';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -146,23 +137,11 @@ export class AuthController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Código de autorização inválido ou não fornecido',
-    schema: {
-      example: {
-        statusCode: 400,
-        message: 'Código de autorização inválido ou expirado',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'O email já está cadastrado com senha. Use login tradicional',
-    schema: {
-      example: {
-        statusCode: 400,
-        message:
-          'Este email já está cadastrado com senha. Use login tradicional.',
-      },
+    description: 'Erros possíveis para requisições inválidas',
+    example: {
+      statusCode: 400,
+      message:
+        'Este email já está cadastrado com senha. Use login tradicional.',
     },
   })
   async googleCallback(@Query('code') code: string, @Res() res: Response) {
