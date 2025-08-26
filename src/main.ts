@@ -5,7 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('familyoffice/api');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -21,7 +21,7 @@ async function bootstrap() {
     .addTag('family-office-back')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, documentFactory);
+  SwaggerModule.setup('/docs', app, documentFactory);
   await app.listen(process.env.PORT ?? 3100);
 }
 bootstrap();
