@@ -134,6 +134,11 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('Token inválido ou expirado.');
     }
+    if (user.tipoAutenticacao !== TipoAutenticacao.LOCAL) {
+      throw new BadRequestException(
+        'Usuário cadastrado com Login Social, não é permitido socilitar redefinição de senha',
+      );
+    }
 
     const validateResetTokenRequestDto = new ValidateResetTokenRequestDto(
       request.email,
