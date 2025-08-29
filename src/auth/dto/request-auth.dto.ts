@@ -38,10 +38,12 @@ export class RegisterRequestDto {
 
   @ApiProperty({
     example: '12345678909',
-    description: 'CPF do usuário, apenas números',
+    description: 'CPF do usuário',
   })
   @IsNotEmpty()
-  @Matches(/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/)
+  @Matches(/^\d{11}$|^\d{3}\.\d{3}\.\d{3}-\d{2}$/, {
+    message: 'CPF deve estar no formato 12345678909 ou 123.456.789-09',
+  })
   @Transform(({ value }) => value.replace(/\D/g, ''))
   cpf: string;
 

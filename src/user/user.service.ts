@@ -9,7 +9,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TipoAutenticacao, User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Address } from 'src/address/entities/address.entity';
 import { AddressService } from 'src/address/address.service';
 import { CreateAddressDto } from 'src/address/dto/request-address.dto';
 import { RegisterRequestDto } from 'src/auth/dto/request-auth.dto';
