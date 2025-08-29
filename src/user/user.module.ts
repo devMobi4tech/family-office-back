@@ -6,11 +6,13 @@ import { User } from './entities/user.entity';
 import { AddressModule } from 'src/address/address.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { InvestorProfileModule } from 'src/investor-profile/investor-profile.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     AddressModule,
+    InvestorProfileModule,
     ConfigModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

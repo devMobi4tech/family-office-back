@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Address } from 'src/address/entities/address.entity';
 import { ResetToken } from 'src/auth/entities/reset_token.entity';
+import { InvestorProfile } from 'src/investor-profile/entities/investor-profile.entity';
 import { User } from 'src/user/entities/user.entity';
 
 const ConnectionsTypes = {
@@ -24,7 +25,7 @@ const ConnectionsTypes = {
           username: config.get<string>('DATABASE_USERNAME'),
           password: config.get<string>('DATABASE_PASSWORD'),
           database: config.get<string>('DATABASE_NAME'),
-          entities: [User, Address, ResetToken],
+          entities: [User, Address, ResetToken, InvestorProfile],
           synchronize: config.get<boolean>('DATABASE_SYNCHRONIZE'),
           timezone: 'z',
         };

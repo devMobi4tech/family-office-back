@@ -19,8 +19,8 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
-import { UpdateInvestorProfileRequestDto } from './dto/request-user.dto';
 import { UserResponseDto } from './dto/response-user.dto';
+import { UpdateInvestorProfileRequestDto } from './dto/request-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -58,14 +58,18 @@ export class UserController {
     description: 'Usuário não autenticado',
   })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  @ApiResponse({
+    status: 422,
+    description: 'Usuário já está utilizando esse perfil de investidor',
+  })
   @HttpCode(204)
   async updateInvestorProfile(
     @Body() updateInvestorProfileRequestDto: UpdateInvestorProfileRequestDto,
     @Req() req,
   ): Promise<void> {
     await this.userSerivce.updateInvestorProfile(
-      req.user.id,
       updateInvestorProfileRequestDto,
+      req.user.id,
     );
   }
 

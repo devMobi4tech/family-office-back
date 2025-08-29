@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,14 +11,16 @@ import * as bcrypt from 'bcrypt';
 import { AddressService } from 'src/address/address.service';
 import { CreateAddressDto } from 'src/address/dto/request-address.dto';
 import { RegisterRequestDto } from 'src/auth/dto/request-auth.dto';
-import { UpdateInvestorProfileRequestDto } from './dto/request-user.dto';
 import { UserResponseDto } from './dto/response-user.dto';
+import { InvestorProfileService } from 'src/investor-profile/investor-profile.service';
+import { UpdateInvestorProfileRequestDto } from './dto/request-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     private addressService: AddressService,
+    private investorProfileService: InvestorProfileService,
   ) {}
 
   async createUser(createUserDto: RegisterRequestDto): Promise<User> {
@@ -37,15 +38,20 @@ export class UserService {
     });
   }
 
+  async findById(id: string): Promise<User | null> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+    return user;
+  }
+
   async updateAddress(
     createAddressDto: CreateAddressDto,
     tokenUserId: string,
   ): Promise<void> {
-    const user = await this.userRepository.findOne({
-      where: { id: tokenUserId },
-    });
+    const user = await this.findById(tokenUserId);
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('Usuário não encontrado');
     }
 
     this.addressService.create(createAddressDto, user);
@@ -60,18 +66,20 @@ export class UserService {
   }
 
   async updateInvestorProfile(
-    userId: string,
-    updateInvestorProfileDto: UpdateInvestorProfileRequestDto,
+    updateInvestorProfileRequestDto: UpdateInvestorProfileRequestDto,
+    userTokenId: string,
   ): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({
+      where: { id: userTokenId },
+    });
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('Usuário não encontrado.');
     }
 
-    user.perfilInvestidor = updateInvestorProfileDto.perfilInvestidor;
-    user.perfilInvestidorDefinidoEm = new Date();
-
-    await this.userRepository.save(user);
+    return await this.investorProfileService.update(
+      updateInvestorProfileRequestDto,
+      user,
+    );
   }
 
   async getUserProfile(userId: string): Promise<UserResponseDto> {
@@ -91,8 +99,6 @@ export class UserService {
       email: user.email,
       fotoPerfilUrl: user.fotoPerfilUrl,
       rendaMensal: user.rendaMensal,
-      perfilInvestidor: user.perfilInvestidor,
-      perfilInvestidorDefinidoEm: user.perfilInvestidorDefinidoEm,
       criadoEm: user.criadoEm,
       endereco,
     };

@@ -12,12 +12,7 @@ import {
   BeforeUpdate,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-
-export enum PerfilInvestidor {
-  CONSERVADOR = 'CONSERVADOR',
-  MODERADO = 'MODERADO',
-  ARROJADO = 'ARROJADO',
-}
+import { InvestorProfile } from 'src/investor-profile/entities/investor-profile.entity';
 
 export enum TipoAutenticacao {
   LOCAL = 'LOCAL', // Usuário com email e senha
@@ -61,15 +56,8 @@ export class User {
   })
   rendaMensal: number;
 
-  @Column({
-    type: 'enum',
-    enum: PerfilInvestidor,
-    nullable: true,
-  })
-  perfilInvestidor: PerfilInvestidor;
-
-  @Column({ type: Date, nullable: true })
-  perfilInvestidorDefinidoEm?: Date;
+  @OneToMany(() => InvestorProfile, (investorProfile) => investorProfile.user)
+  perfilInvestidor: InvestorProfile[];
 
   @OneToMany(() => ResetToken, (resetToken) => resetToken.user)
   resetTokens: ResetToken[];

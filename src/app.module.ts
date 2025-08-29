@@ -5,6 +5,7 @@ import { AddressModule } from './address/address.module';
 import { TypeORMModule } from './config/typeorm.module';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './mail/email.module';
+import { InvestorProfileModule } from './investor-profile/investor-profile.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { EmailModule } from './mail/email.module';
     AuthModule,
     AddressModule,
     EmailModule,
+    InvestorProfileModule,
   ],
 })
 export class AppModule {}

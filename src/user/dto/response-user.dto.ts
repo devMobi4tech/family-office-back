@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PerfilInvestidor } from '../entities/user.entity';
 import { AddressResponseDto } from 'src/address/dto/response-address.dto';
 
 export class UserResponseDto {
@@ -20,19 +19,6 @@ export class UserResponseDto {
 
   @ApiProperty({ example: 5000.0 })
   rendaMensal: number;
-
-  @ApiProperty({
-    enum: PerfilInvestidor,
-    example: PerfilInvestidor.MODERADO,
-    nullable: true,
-  })
-  perfilInvestidor?: PerfilInvestidor;
-
-  @ApiProperty({
-    example: '2025-08-21T19:40:00.000Z',
-    nullable: true,
-  })
-  perfilInvestidorDefinidoEm?: Date;
 
   @ApiProperty({ example: '2025-01-01T10:00:00.000Z' })
   criadoEm: Date;
