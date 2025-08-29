@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ForgotPasswordResponseDto,
@@ -54,6 +62,7 @@ export class AuthController {
     description: 'Login bem-sucedido',
     type: TokenResponseDto,
   })
+  @HttpCode(200)
   @ApiResponse({ status: 401, description: 'Email ou senha inválidos' })
   async login(@Body() request: LoginRequestDto): Promise<TokenResponseDto> {
     return await this.authService.login(request);
@@ -63,11 +72,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Solicita redefinição de senha' })
   @ApiBody({ type: ForogtPasswordRequestDto })
   @ApiResponse({
-    status: 200,
+    status: 201,
     description:
       'E-mail com código de redefinição de senha enviado caso exista usuário cadastrado',
     type: ForgotPasswordResponseDto,
   })
+  @HttpCode(201)
   async forgotPassword(
     @Body() request: ForogtPasswordRequestDto,
   ): Promise<ForgotPasswordResponseDto> {
@@ -86,6 +96,7 @@ export class AuthController {
     status: 400,
     description: 'Código inválido ou expirado',
   })
+  @HttpCode(200)
   async validateResetToken(
     @Body() request: ValidateResetTokenRequestDto,
   ): Promise<ValidateResetTokenResponseDto> {
@@ -104,6 +115,7 @@ export class AuthController {
     status: 400,
     description: 'Código inválido ou expirado/senhas não coincidem',
   })
+  @HttpCode(200)
   async resetPassword(
     @Body() request: ResetPasswordRequestDto,
   ): Promise<ResetPasswordResponseDto> {
