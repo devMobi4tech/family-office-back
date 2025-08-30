@@ -3,13 +3,12 @@ import {
   Controller,
   Get,
   HttpCode,
-  Param,
   Put,
   Req,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateAddressDto } from 'src/address/dto/request-address.dto';
 import {
   ApiTags,
@@ -17,17 +16,17 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiParam,
 } from '@nestjs/swagger';
 import { UserResponseDto } from './dto/response-user.dto';
 import { UpdateInvestorProfileRequestDto } from './dto/request-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
 @ApiTags('Users')
 @Controller('users')
 export class UserController {
   constructor(private userSerivce: UserService) {}
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Put('/address')
   @ApiOperation({
@@ -47,7 +46,7 @@ export class UserController {
   }
 
   @Put('/investor-profile')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Atualiza o perfil de investidor do usuário autenticado',
@@ -74,7 +73,7 @@ export class UserController {
   }
 
   @Get('profile')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtém o perfil do usuário autenticado' })
   @ApiResponse({
@@ -85,5 +84,11 @@ export class UserController {
   @ApiResponse({ status: 401, description: 'Token inválido ou não fornecido' })
   async getUserProfile(@Req() req): Promise<UserResponseDto> {
     return await this.userSerivce.getUserProfile(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profiles')
+  async getProfile(@Request() req) {
+    return req.user;
   }
 }

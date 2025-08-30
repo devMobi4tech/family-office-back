@@ -3,6 +3,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class EmailService {
   constructor(private mailerService: MailerService) {}
+
   async sendUserRecoverPasswordToken(
     fullName: string,
     email: string,

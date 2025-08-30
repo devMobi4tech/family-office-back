@@ -1,5 +1,4 @@
 import { Address } from 'src/address/entities/address.entity';
-import { ResetToken } from 'src/auth/entities/reset_token.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -13,6 +12,7 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { InvestorProfile } from 'src/investor-profile/entities/investor-profile.entity';
+import { ResetToken } from 'src/auth/entities/reset_token.entity';
 
 export enum TipoAutenticacao {
   LOCAL = 'LOCAL', // Usuário com email e senha

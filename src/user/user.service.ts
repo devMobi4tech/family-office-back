@@ -10,10 +10,10 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AddressService } from 'src/address/address.service';
 import { CreateAddressDto } from 'src/address/dto/request-address.dto';
-import { RegisterRequestDto } from 'src/auth/dto/request-auth.dto';
 import { UserResponseDto } from './dto/response-user.dto';
 import { InvestorProfileService } from 'src/investor-profile/investor-profile.service';
 import { UpdateInvestorProfileRequestDto } from './dto/request-user.dto';
+import { RegisterRequestDto } from 'src/auth/dto/requests/register-request.dto';
 
 @Injectable()
 export class UserService {
@@ -29,6 +29,27 @@ export class UserService {
     const user = this.userRepository.create({
       ...createUserDto,
     });
+    return await this.userRepository.save(user);
+  }
+
+  async createGoogleUser(profile: any): Promise<User> {
+    const existingUser = await this.findByEmail(profile.emails[0].value);
+    if (existingUser) {
+      if (existingUser.tipoAutenticacao !== TipoAutenticacao.GOOGLE) {
+        throw new BadRequestException(
+          'Este email já está cadastrado com senha. Use login tradicional.',
+        );
+      }
+      return existingUser;
+    }
+
+    const user = this.userRepository.create({
+      nomeCompleto: profile.name.givenName + ' ' + profile.name.familyName,
+      email: profile.emails[0].value,
+      fotoPerfilUrl: profile.photos[0].value,
+      tipoAutenticacao: TipoAutenticacao.GOOGLE,
+    });
+
     return await this.userRepository.save(user);
   }
 

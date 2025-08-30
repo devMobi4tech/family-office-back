@@ -3,156 +3,162 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { TipoAutenticacao, User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
-import {
-  ForogtPasswordRequestDto,
-  LoginRequestDto,
-  RegisterRequestDto,
-  ResetPasswordRequestDto,
-  ValidateResetTokenRequestDto,
-} from './dto/request-auth.dto';
-import {
-  ForgotPasswordResponseDto,
-  ResetPasswordResponseDto,
-  TokenResponseDto,
-  ValidateResetTokenResponseDto,
-} from './dto/response-auth.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ResetToken } from './entities/reset_token.entity';
+import { JwtService } from '@nestjs/jwt';
+import { TipoAutenticacao } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { EmailService } from 'src/mail/email.service';
-import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
-
+import { InjectRepository } from '@nestjs/typeorm';
+import { ResetToken } from './entities/reset_token.entity';
+import { ResetPasswordResponseDto } from './dto/responses/reset-password-response.dto';
+import { ValidateResetCodeResponseDto } from './dto/responses/validate-reset-code-response.dto';
+import { RegisterRequestDto } from './dto/requests/register-request.dto';
+import { ForogtPasswordRequestDto } from './dto/requests/forgot-password-request.dto';
+import { ValidateResetCodeRequestDto } from './dto/requests/validate-reset-code-request.dto';
+import { ResetPasswordRequestDto } from './dto/requests/reset-password-request.dto';
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
+    private usersService: UserService,
     private jwtService: JwtService,
     @InjectRepository(ResetToken)
     private resetTokensRepository: Repository<ResetToken>,
     private emailService: EmailService,
-    private configService: ConfigService,
   ) {}
 
-  async register(request: RegisterRequestDto): Promise<TokenResponseDto> {
-    const user = await this.userService.createUser(request);
-
-    const accessToken = await this.generateToken(user);
-
-    return new TokenResponseDto(accessToken);
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.usersService.findByEmail(email);
+    if (user && (await bcrypt.compare(pass, user.senha))) {
+      const { senha, ...result } = user;
+      return result;
+    }
+    return null;
   }
 
-  private async generateToken(user: User): Promise<string> {
-    const accessToken = await this.jwtService.signAsync({
-      id: user.id,
-      name: user.nomeCompleto,
-      email: user.email,
+  async register(body: RegisterRequestDto) {
+    const user = await this.usersService.createUser(body);
+    return await this.generateJwt(user);
+  }
+
+  async generateJwt(user: any) {
+    const payload = { sub: user.id, email: user.email };
+    return {
+      accessToken: this.jwtService.sign(payload),
+    };
+  }
+
+  googleLogin(req) {
+    if (!req.user) {
+      throw new UnauthorizedException('Nenhum usuário recebido do Google');
+    }
+
+    return {
+      accessToken: req.user,
+    };
+  }
+
+  async sendResetPasswordEmail(
+    body: ForogtPasswordRequestDto,
+  ): Promise<{ message: string }> {
+    const user = await this.usersService.findByEmail(body.email);
+
+    if (!user || user.tipoAutenticacao !== TipoAutenticacao.LOCAL) {
+      return {
+        message:
+          'Se o e-mail estiver cadastrado, um código foi enviado para redefinição de senha.',
+      };
+    }
+
+    const recentToken = await this.resetTokensRepository.findOne({
+      where: { user: { id: user.id } },
+      order: { expiraEm: 'DESC' },
     });
-    return accessToken;
-  }
 
-  async login(request: LoginRequestDto): Promise<TokenResponseDto> {
-    const user = await this.userService.findByEmail(request.email);
-    if (user) {
-      const isMatch = await bcrypt.compare(request.senha, user.senha);
-      if (isMatch) {
-        const accessToken = await this.generateToken(user);
-        return new TokenResponseDto(accessToken);
+    if (
+      !recentToken ||
+      recentToken.expiraEm.getTime() < Date.now() - 5 * 60 * 1000
+    ) {
+      if (recentToken) {
+        await this.resetTokensRepository.remove(recentToken);
       }
-    }
-    throw new UnauthorizedException('E-mail ou senha incorretos.');
-  }
 
-  async forgotPassword(
-    request: ForogtPasswordRequestDto,
-  ): Promise<ForgotPasswordResponseDto> {
-    const user = await this.userService.findByEmail(request.email);
-    if (user && user.tipoAutenticacao === TipoAutenticacao.LOCAL) {
-      const userResetTokens = await this.getResetTokensFromUser(user);
+      const code = this.generateResetCode();
+      const resetToken = this.resetTokensRepository.create({
+        user,
+        codigo: code,
+        expiraEm: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos
+      });
 
-      // Só gera um novo código se NÃO houver solicitado nos últimos 5 minutos
-      if (!this.verifyIfUserHasRecentTokens(userResetTokens, 5)) {
-        if (userResetTokens) {
-          this.resetTokensRepository.remove(userResetTokens);
-        }
-        const code = this.generatePasswordResetToken();
-        const resetToken = this.resetTokensRepository.create({
-          user: user,
-          codigo: code,
-          expiraEm: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos
-        });
+      await this.resetTokensRepository.save(resetToken);
 
-        await this.emailService.sendUserRecoverPasswordToken(
-          user.nomeCompleto,
-          user.email,
-          code,
-        );
-
-        await this.resetTokensRepository.save(resetToken);
-      }
-    }
-    return new ForgotPasswordResponseDto(
-      'Se o e-mail estiver cadastrado, um código foi enviado para redefinição de senha. ' +
-        'Se você não recebeu, aguarde alguns minutos antes de tentar novamente.',
-    );
-  }
-
-  async validateResetToken(
-    request: ValidateResetTokenRequestDto,
-  ): Promise<ValidateResetTokenResponseDto> {
-    const user = await this.userService.findByEmail(request.email);
-    if (user) {
-      const resetTokens = await this.getResetTokensFromUser(user);
-      for (const reset of resetTokens) {
-        if (reset.expiraEm < new Date()) {
-          await this.resetTokensRepository.remove(reset);
-          continue;
-        }
-        const isMatch = await bcrypt.compare(request.codigo, reset.codigo);
-        if (isMatch) {
-          return new ValidateResetTokenResponseDto(
-            true,
-            'Código válido. Pode prosseguir com a redefinição de senha.',
-          );
-        }
-      }
-    }
-    throw new BadRequestException('Código inválido ou expirado.');
-  }
-
-  async resetPassword(
-    request: ResetPasswordRequestDto,
-  ): Promise<ResetPasswordResponseDto> {
-    if (request.senha !== request.confirmacaoSenha) {
-      throw new BadRequestException('As senhas não conferem.');
-    }
-    const user = await this.userService.findByEmail(request.email);
-    if (!user) {
-      throw new BadRequestException('Token inválido ou expirado.');
-    }
-    if (user.tipoAutenticacao !== TipoAutenticacao.LOCAL) {
-      throw new BadRequestException(
-        'Usuário cadastrado com Login Social, não é permitido socilitar redefinição de senha',
+      await this.emailService.sendUserRecoverPasswordToken(
+        user.nomeCompleto,
+        user.email,
+        code,
       );
     }
 
-    const validateResetTokenRequestDto = new ValidateResetTokenRequestDto(
-      request.email,
-      request.codigo,
-    );
-    const validateResetToken = await this.validateResetToken(
-      validateResetTokenRequestDto,
-    );
-    if (!validateResetToken.isValid) {
+    return {
+      message:
+        'Se o e-mail estiver cadastrado, um código foi enviado para redefinição de senha.',
+    };
+  }
+
+  async validateResetCode(
+    body: ValidateResetCodeRequestDto,
+  ): Promise<ValidateResetCodeResponseDto> {
+    const user = await this.usersService.findByEmail(body.email);
+    if (!user) {
+      throw new BadRequestException('Código inválido ou expirado.');
+    }
+
+    const validTokens = await this.resetTokensRepository.find({
+      where: { user: { id: user.id } },
+    });
+
+    for (const token of validTokens) {
+      if (token.expiraEm < new Date()) {
+        await this.resetTokensRepository.remove(token);
+        continue;
+      }
+
+      const isMatch = await bcrypt.compare(body.codigo, token.codigo);
+      if (isMatch) {
+        return new ValidateResetCodeResponseDto(
+          true,
+          'Código válido. Pode prosseguir com a redefinição de senha.',
+        );
+      }
+    }
+
+    throw new BadRequestException('Código inválido ou expirado.');
+  }
+  async resetPassword(body: ResetPasswordRequestDto) {
+    if (body.senha !== body.confirmacaoSenha) {
+      throw new BadRequestException('As senhas não conferem.');
+    }
+
+    const user = await this.usersService.findByEmail(body.email);
+    if (!user || user.tipoAutenticacao !== TipoAutenticacao.LOCAL) {
       throw new BadRequestException('Token inválido ou expirado.');
     }
 
-    await this.userService.updatePassword(user, request.senha);
-    await this.resetTokensRepository.delete({ user: { id: user.id } });
+    const tokens = await this.resetTokensRepository.find({
+      where: { user: { id: user.id } },
+    });
+
+    const resetToken = tokens.find(
+      (t) =>
+        t.expiraEm > new Date() && bcrypt.compareSync(body.codigo, t.codigo),
+    );
+
+    if (!resetToken) {
+      throw new BadRequestException('Token inválido ou expirado.');
+    }
+
+    await this.resetTokensRepository.remove(resetToken);
+    await this.usersService.updatePassword(user, body.senha);
 
     return new ResetPasswordResponseDto(
       true,
@@ -160,85 +166,7 @@ export class AuthService {
     );
   }
 
-  getGoogleCallbackUrl(): string {
-    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI');
-    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
-    const scope = [
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-    ].join(' ');
-
-    return `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=consent`;
-  }
-
-  async loginUserWithGoogle(code: string): Promise<TokenResponseDto> {
-    if (!code) {
-      throw new BadRequestException('Código de autorização não fornecido');
-    }
-
-    const redirectUri = this.configService.get<string>('GOOGLE_REDIRECT_URI')!;
-    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID')!;
-    const clientSecret = this.configService.get<string>('GOOGLE_SECRET')!;
-
-    let tokenResponse: any;
-    try {
-      tokenResponse = await axios.post(
-        'https://oauth2.googleapis.com/token',
-        new URLSearchParams({
-          code,
-          client_id: clientId,
-          client_secret: clientSecret,
-          redirect_uri: redirectUri,
-          grant_type: 'authorization_code',
-        }).toString(),
-        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
-      );
-    } catch (error: any) {
-      throw new BadRequestException(
-        'Código de autorização inválido ou expirado',
-      );
-    }
-
-    const accessToken = tokenResponse.data.access_token;
-
-    const userResponse = await axios.get(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
-      { headers: { Authorization: `Bearer ${accessToken}` } },
-    );
-
-    const userData = userResponse.data;
-
-    return this.googleLogin(userData);
-  }
-
-  async googleLogin(userData: any): Promise<TokenResponseDto> {
-    const user = await this.userService.loginWithGoogle(userData);
-    const accessToken = await this.generateToken(user);
-    return new TokenResponseDto(accessToken);
-  }
-
-  private generatePasswordResetToken(): string {
+  private generateResetCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
-  }
-
-  private async getResetTokensFromUser(user: User): Promise<ResetToken[]> {
-    const resetTokens = await this.resetTokensRepository.find({
-      where: { user: { id: user.id } },
-    });
-    return resetTokens;
-  }
-
-  private verifyIfUserHasRecentTokens(
-    recentTokens: ResetToken[],
-    minutes: number,
-  ): boolean {
-    const now = new Date();
-    const limite = now.getTime() - minutes * 60 * 1000;
-
-    const recentToken = recentTokens.find(
-      (token) => token.criadoEm.getTime() > limite,
-    );
-
-    return recentToken !== undefined;
   }
 }
